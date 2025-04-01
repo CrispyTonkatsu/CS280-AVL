@@ -7,17 +7,15 @@
  * @brief Implementation for a binary search tree
  */
 
-#pragma once
-
 #include <algorithm>
 #include <list>
 #include <iostream>
 #include <utility>
 #include <vector>
 
-#define BST_CPP
+#define AVL_CPP
 
-#ifndef BST_H
+#ifndef AVL_H
   #include "avl-map.h"
 #endif
 
@@ -34,7 +32,7 @@ namespace CS280 {
     nullptr,
   };
 
-  /// BST Methods
+  /// AVL Methods
 
   // Constructors & Destructor
 
@@ -179,7 +177,7 @@ namespace CS280 {
     Node* to_add = Node::CreateNode(key);
     current->add_child(*to_add);
 
-    to_add->insert_balance(nullptr, *to_add, root);
+    to_add->insert_balance(nullptr, root);
 
     size_++;
 
@@ -278,7 +276,7 @@ namespace CS280 {
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::erase(BSTmap_iterator it) -> void {
+  auto AVLmap<K, V>::erase(AVLmap_iterator it) -> void {
     if (it == end_it) {
       return;
     }
@@ -300,6 +298,10 @@ namespace CS280 {
       }
 
       size_--;
+      if (node->parent != nullptr) {
+        node->parent->insert_balance(nullptr, root);
+      }
+
       delete node;
       return;
     }
@@ -323,6 +325,10 @@ namespace CS280 {
       only_child->parent = parent;
 
       size_--;
+      if (node->parent != nullptr) {
+        node->parent->insert_balance(nullptr, root);
+      }
+
       delete node;
       return;
     }
@@ -435,6 +441,11 @@ namespace CS280 {
 
   template<typename K, typename V>
   auto AVLmap<K, V>::Node::Value() -> V& {
+    return value;
+  }
+
+  template<typename K, typename V>
+  auto AVLmap<K, V>::Node::Value() const -> const V& {
     return value;
   }
 
@@ -586,11 +597,8 @@ namespace CS280 {
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::Node::try_fix_balance(
-    Node* previous,
-    Node& inserted,
-    Node*& root
-  ) -> Rotation {
+  auto AVLmap<K, V>::Node::try_fix_balance(Node* previous, Node*& root)
+    -> Rotation {
     int balance_l = 0;
     int balance_r = 0;
 
@@ -608,10 +616,8 @@ namespace CS280 {
       return Rotation::NONE;
     }
 
-    // TODO: Check for the separate balance cases
-
     if (balance > 1) {
-      if (previous != nullptr && inserted.Key() < previous->Key()) {
+      if (previous != nullptr && previous->balance < 0) {
         previous->rotate_right();
       }
 
@@ -625,7 +631,7 @@ namespace CS280 {
     }
 
     if (balance < -1) {
-      if (previous != nullptr && inserted.Key() > previous->Key()) {
+      if (previous != nullptr && previous->balance > 0) {
         previous->rotate_left();
       }
 
@@ -690,11 +696,7 @@ namespace CS280 {
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::Node::insert_balance(
-    Node* previous,
-    Node& inserted,
-    Node*& root
-  ) -> void {
+  auto AVLmap<K, V>::Node::insert_balance(Node* previous, Node*& root) -> void {
 
     // Updating the height
     if (has_children()) {
@@ -717,7 +719,7 @@ namespace CS280 {
     }
 
     // Trying to fix balance in local subtree
-    Rotation rotation_occured = try_fix_balance(previous, inserted, root);
+    Rotation rotation_occured = try_fix_balance(previous, root);
 
     // Updating the height accordingly
     if (rotation_occured != Rotation::NONE && parent != nullptr) {
@@ -725,7 +727,7 @@ namespace CS280 {
     }
 
     if (parent != nullptr) {
-      parent->insert_balance(this, inserted, root);
+      parent->insert_balance(this, root);
     }
   }
 
@@ -745,63 +747,68 @@ namespace CS280 {
   // Iterator Methods
 
   template<typename K, typename V>
-  AVLmap<K, V>::BSTmap_iterator::BSTmap_iterator(Node* p): p_node(p) {}
+  AVLmap<K, V>::AVLmap_iterator::AVLmap_iterator(Node* p): p_node(p) {}
 
   template<typename K, typename V>
-  AVLmap<K, V>::BSTmap_iterator::BSTmap_iterator(BSTmap_iterator& rhs):
+  AVLmap<K, V>::AVLmap_iterator::AVLmap_iterator(AVLmap_iterator& rhs):
       p_node(rhs.p_node) {}
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator=(const BSTmap_iterator& rhs)
-    -> BSTmap_iterator& {
+  AVLmap<K, V>::AVLmap_iterator::operator AVLmap_iterator_const() {
+    return AVLmap_iterator_const(p_node);
+  }
+
+  template<typename K, typename V>
+  auto AVLmap<K, V>::AVLmap_iterator::operator=(const AVLmap_iterator& rhs)
+    -> AVLmap_iterator& {
     p_node = rhs.p_node;
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator++() -> BSTmap_iterator& {
+  auto AVLmap<K, V>::AVLmap_iterator::operator++() -> AVLmap_iterator& {
     p_node = p_node->increment();
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator++(int) -> BSTmap_iterator {
-    BSTmap_iterator output = BSTmap_iterator(p_node);
+  auto AVLmap<K, V>::AVLmap_iterator::operator++(int) -> AVLmap_iterator {
+    AVLmap_iterator output = AVLmap_iterator(p_node);
     p_node = p_node->increment();
     return output;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator--() -> BSTmap_iterator& {
+  auto AVLmap<K, V>::AVLmap_iterator::operator--() -> AVLmap_iterator& {
     p_node = p_node->decrement();
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator--(int) -> BSTmap_iterator {
-    BSTmap_iterator output = BSTmap_iterator(p_node);
+  auto AVLmap<K, V>::AVLmap_iterator::operator--(int) -> AVLmap_iterator {
+    AVLmap_iterator output = AVLmap_iterator(p_node);
     p_node = p_node->decrement();
     return output;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator*() -> Node& {
+  auto AVLmap<K, V>::AVLmap_iterator::operator*() -> Node& {
     return *p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator->() -> Node* {
+  auto AVLmap<K, V>::AVLmap_iterator::operator->() -> Node* {
     return p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator!=(const BSTmap_iterator& rhs)
+  auto AVLmap<K, V>::AVLmap_iterator::operator!=(const AVLmap_iterator& rhs)
     -> bool {
     return p_node != rhs.p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator::operator==(const BSTmap_iterator& rhs)
+  auto AVLmap<K, V>::AVLmap_iterator::operator==(const AVLmap_iterator& rhs)
     -> bool {
     return p_node == rhs.p_node;
   }
@@ -809,73 +816,73 @@ namespace CS280 {
   // Const iterator_const Methods
 
   template<typename K, typename V>
-  AVLmap<K, V>::BSTmap_iterator_const::BSTmap_iterator_const(Node* p):
+  AVLmap<K, V>::AVLmap_iterator_const::AVLmap_iterator_const(Node* p):
       p_node(p) {}
 
   template<typename K, typename V>
-  AVLmap<K, V>::BSTmap_iterator_const::BSTmap_iterator_const(
-    BSTmap_iterator_const& rhs
+  AVLmap<K, V>::AVLmap_iterator_const::AVLmap_iterator_const(
+    AVLmap_iterator_const& rhs
   ):
       p_node(rhs.p_node) {}
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator=(
-    const BSTmap_iterator_const& rhs
-  ) -> BSTmap_iterator_const& {
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator=(
+    const AVLmap_iterator_const& rhs
+  ) -> AVLmap_iterator_const& {
     p_node = rhs.p_node;
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator++()
-    -> BSTmap_iterator_const& {
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator++()
+    -> AVLmap_iterator_const& {
     p_node = p_node->increment();
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator++(int)
-    -> BSTmap_iterator_const {
-    BSTmap_iterator_const output = BSTmap_iterator_const(p_node);
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator++(int)
+    -> AVLmap_iterator_const {
+    AVLmap_iterator_const output = AVLmap_iterator_const(p_node);
     p_node = p_node->increment();
     return output;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator--()
-    -> BSTmap_iterator_const& {
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator--()
+    -> AVLmap_iterator_const& {
     p_node = p_node->decrement();
     return *this;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator--(int)
-    -> BSTmap_iterator_const {
-    BSTmap_iterator_const output = BSTmap_iterator_const(p_node);
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator--(int)
+    -> AVLmap_iterator_const {
+    AVLmap_iterator_const output = AVLmap_iterator_const(p_node);
     p_node = p_node->decrement();
     return output;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator*() -> const Node& {
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator*() -> const Node& {
     return *p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator->() -> const Node* {
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator->() -> const Node* {
     return p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator!=(
-    const BSTmap_iterator_const& rhs
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator!=(
+    const AVLmap_iterator_const& rhs
   ) -> bool {
     return p_node != rhs.p_node;
   }
 
   template<typename K, typename V>
-  auto AVLmap<K, V>::BSTmap_iterator_const::operator==(
-    const BSTmap_iterator_const& rhs
+  auto AVLmap<K, V>::AVLmap_iterator_const::operator==(
+    const AVLmap_iterator_const& rhs
   ) -> bool {
     return p_node == rhs.p_node;
   }

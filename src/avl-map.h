@@ -7,11 +7,9 @@
  * @brief Implementation for a binary search tree
  */
 
-#pragma once
-
 #include <cmath>
-#ifndef BSTMAP_H
-  #define BSTMAP_H
+#ifndef AVLMAP_H
+  #define AVLMAP_H
 
   #include <iosfwd>
   #include <optional>
@@ -33,17 +31,17 @@ namespace CS280 {
   class AVLmap {
 
     // Forward declarations for the struct
-    struct BSTmap_iterator;
-    struct BSTmap_iterator_const;
+    struct AVLmap_iterator;
+    struct AVLmap_iterator_const;
 
   public:
 
     // standard names for iterator types
-    typedef BSTmap_iterator iterator;
-    typedef BSTmap_iterator_const const_iterator;
+    typedef AVLmap_iterator iterator;
+    typedef AVLmap_iterator_const const_iterator;
 
     /**
-     * @brief This class represents a Node in the BST. It mainly features
+     * @brief This class represents a Node in the AVL. It mainly features
      * getters, setters and traversal methods.
      */
     class Node {
@@ -86,6 +84,12 @@ namespace CS280 {
        * @return Reference to the value.
        */
       auto Value() -> V&; // return a reference
+
+      /**
+       * @brief Getter of a reference to the value of this node.
+       * @return Reference to the value.
+       */
+      auto Value() const -> const V&; // return a reference
 
       /**
        * @brief Function to get the node furthest left of a node.
@@ -175,8 +179,7 @@ namespace CS280 {
        *
        * @return Whether a rotation occured
        */
-      auto try_fix_balance(Node* previous, Node& inserted, Node*& root)
-        -> Rotation;
+      auto try_fix_balance(Node* previous, Node*& root) -> Rotation;
 
       /**
        * @brief Performs a right rotation about the calling node.
@@ -192,7 +195,7 @@ namespace CS280 {
        * @brief Recursive function that will update the balance of the nodes in
        * the tree.
        */
-      auto insert_balance(Node* previous, Node& inserted, Node*& root) -> void;
+      auto insert_balance(Node* previous, Node*& root) -> void;
 
       /**
        * @brief Propagates the height of this node downwards recursively.
@@ -235,7 +238,7 @@ namespace CS280 {
        */
       Node* right;
 
-      // Friending the BSTmap class so the internals can be accessed.
+      // Friending the AVLmap class so the internals can be accessed.
       friend AVLmap;
     };
 
@@ -244,7 +247,7 @@ namespace CS280 {
     /**
      * @brief This class is the non const iterator of the map
      */
-    struct BSTmap_iterator {
+    struct AVLmap_iterator {
     private:
 
       /**
@@ -258,37 +261,42 @@ namespace CS280 {
        * @brief Constructor for the iterator
        * @param Pointer to the node
        */
-      BSTmap_iterator(Node* p = nullptr);
+      AVLmap_iterator(Node* p = nullptr);
 
       /**
        * @brief Copy constructor for the iterator
        */
-      BSTmap_iterator(BSTmap_iterator& rhs);
+      AVLmap_iterator(AVLmap_iterator& rhs);
+
+      /**
+       * @brief Conversion operator into const
+       */
+      operator AVLmap_iterator_const();
 
       /**
        * @brief Copy assignment operator
        */
-      auto operator=(const BSTmap_iterator& rhs) -> BSTmap_iterator&;
+      auto operator=(const AVLmap_iterator& rhs) -> AVLmap_iterator&;
 
       /**
        * @brief Pre-increment operator (successor)
        */
-      auto operator++() -> BSTmap_iterator&;
+      auto operator++() -> AVLmap_iterator&;
 
       /**
        * @brief Post-increment operator (successor)
        */
-      auto operator++(int) -> BSTmap_iterator;
+      auto operator++(int) -> AVLmap_iterator;
 
       /**
        * @brief Pre-decrement operator (predecessor)
        */
-      auto operator--() -> BSTmap_iterator&;
+      auto operator--() -> AVLmap_iterator&;
 
       /**
        * @brief Post-decrement operator (predecessor)
        */
-      auto operator--(int) -> BSTmap_iterator;
+      auto operator--(int) -> AVLmap_iterator;
 
       /**
        * @brief Dereferencing operator.
@@ -305,12 +313,12 @@ namespace CS280 {
       /**
        * @brief Inequality operator.
        */
-      auto operator!=(const BSTmap_iterator& rhs) -> bool;
+      auto operator!=(const AVLmap_iterator& rhs) -> bool;
 
       /**
        * @brief Equality operator.
        */
-      auto operator==(const BSTmap_iterator& rhs) -> bool;
+      auto operator==(const AVLmap_iterator& rhs) -> bool;
 
       friend AVLmap;
     };
@@ -318,7 +326,7 @@ namespace CS280 {
     /**
      * @brief This class is the const iterator of the map
      */
-    struct BSTmap_iterator_const {
+    struct AVLmap_iterator_const {
     private:
 
       /**
@@ -332,38 +340,38 @@ namespace CS280 {
        * @brief Constructor for the iterator
        * @param Pointer to the node
        */
-      BSTmap_iterator_const(Node* p = nullptr);
+      AVLmap_iterator_const(Node* p = nullptr);
 
       /**
        * @brief Copy constructor for the iterator
        */
-      BSTmap_iterator_const(BSTmap_iterator_const& rhs);
+      AVLmap_iterator_const(AVLmap_iterator_const& rhs);
 
       /**
        * @brief Copy assignment operator
        */
-      auto operator=(const BSTmap_iterator_const& rhs)
-        -> BSTmap_iterator_const&;
+      auto operator=(const AVLmap_iterator_const& rhs)
+        -> AVLmap_iterator_const&;
 
       /**
        * @brief Pre-increment operator (successor)
        */
-      auto operator++() -> BSTmap_iterator_const&;
+      auto operator++() -> AVLmap_iterator_const&;
 
       /**
        * @brief Post-increment operator (successor)
        */
-      auto operator++(int) -> BSTmap_iterator_const;
+      auto operator++(int) -> AVLmap_iterator_const;
 
       /**
        * @brief Pre-decrement operator (predecessor)
        */
-      auto operator--() -> BSTmap_iterator_const&;
+      auto operator--() -> AVLmap_iterator_const&;
 
       /**
        * @brief Post-decrement operator (predecessor)
        */
-      auto operator--(int) -> BSTmap_iterator_const;
+      auto operator--(int) -> AVLmap_iterator_const;
 
       /**
        * @brief Dereferencing operator.
@@ -380,21 +388,21 @@ namespace CS280 {
       /**
        * @brief Inequality operator.
        */
-      auto operator!=(const BSTmap_iterator_const& rhs) -> bool;
+      auto operator!=(const AVLmap_iterator_const& rhs) -> bool;
 
       /**
        * @brief Equality operator.
        */
-      auto operator==(const BSTmap_iterator_const& rhs) -> bool;
+      auto operator==(const AVLmap_iterator_const& rhs) -> bool;
 
       friend AVLmap;
     };
 
-    // end iterators are same for all BSTmaps, thus static
-    // make BSTmap_iterator a friend
-    // to allow BSTmap_iterator to access end iterators
-    static BSTmap_iterator end_it;
-    static BSTmap_iterator_const const_end_it;
+    // end iterators are same for all AVLmaps, thus static
+    // make AVLmap_iterator a friend
+    // to allow AVLmap_iterator to access end iterators
+    static AVLmap_iterator end_it;
+    static AVLmap_iterator_const const_end_it;
 
   public:
 
@@ -491,7 +499,7 @@ namespace CS280 {
     auto find(const K& key) const -> const_iterator;
 
     // do not need this one (why) (because const functions should not be able to
-    // edit the tree) BSTmap_iterator_const erase(BSTmap_iterator& it) const;
+    // edit the tree) AVLmap_iterator_const erase(AVLmap_iterator& it) const;
 
     /**
      * @brief Integrity for the check of the tree
@@ -510,13 +518,13 @@ namespace CS280 {
      */
     auto print(std::ostream& os, bool print_value = false) const -> void;
 
-    // inner class (BSTmap_iterator) doesn't have any special priveleges
-    // in accessing private data/methods of the outer class (BSTmap)
-    // so need friendship to allow BSTmap_iterator to access private
-    // "BSTmap::end_it" BTW - same is true for outer class accessing inner class
+    // inner class (AVLmap_iterator) doesn't have any special priveleges
+    // in accessing private data/methods of the outer class (AVLmap)
+    // so need friendship to allow AVLmap_iterator to access private
+    // "AVLmap::end_it" BTW - same is true for outer class accessing inner class
     // private data
-    friend struct BSTmap_iterator;
-    friend struct BSTmap_iterator_const;
+    friend struct AVLmap_iterator;
+    friend struct AVLmap_iterator_const;
 
   private:
 
@@ -541,12 +549,12 @@ namespace CS280 {
     auto clear() -> void;
 
     /**
-     * @brief The root of the BST
+     * @brief The root of the AVL
      */
     Node* root{nullptr};
 
     /**
-     * @brief The amount of elements in the BST
+     * @brief The amount of elements in the AVL
      */
     unsigned int size_{0};
   };
@@ -562,7 +570,7 @@ namespace CS280 {
     -> std::ostream&;
 } // namespace CS280
 
-  #ifndef BST_CPP
+  #ifndef AVL_CPP
     #include "avl-map.cpp"
   #endif
 

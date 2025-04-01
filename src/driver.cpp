@@ -184,7 +184,7 @@ void simple_deletes(
 
 // randomized, no output provided
 void test9() {
-  std::cout << "-------- " << __func__ << " --------\n";
+  /*std::cout << "-------- " << __func__ << " --------\n";*/
   CS280::AVLmap<int, int> map;
 
   std::vector<int> data(50);
@@ -192,7 +192,7 @@ void test9() {
   std::shuffle(data.begin(), data.end(), std::mt19937{std::random_device{}()});
 
   simple_inserts(map, data);
-  std::cout << map << std::endl;
+  /*std::cout << map << std::endl;*/
 
   // shuffle and find
   std::shuffle(data.begin(), data.end(), std::mt19937{std::random_device{}()});
